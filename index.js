@@ -85,20 +85,48 @@ const NOTE_A = NOTE_A4;
 const NOTE_A_SHARP = NOTE_Bb4;
 const NOTE_B = NOTE_B4;
 
+const batmanSongParts = {
+  lowNanaNanaNanaNana: [
+    [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22],
+    [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
+    [[NOTE_G3, NOTE_C4, NOTE_C5], 0.22],
+    [[NOTE_G3, NOTE_C4, NOTE_C5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
+  ],
+  lowNanaNanaNanaNanaWithBatman: [
+    [[NOTE_G3, NOTE_D4, NOTE_D5, NOTE_G4, NOTE_D5, NOTE_F5, NOTE_G5], 0.22],
+    [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5, NOTE_G4, NOTE_D5, NOTE_F5, NOTE_G5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
+    [[NOTE_G3, NOTE_C4, NOTE_C5], 0.22],
+    [[NOTE_G3, NOTE_C4, NOTE_C5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
+  ]
+};
+
 // Batman theme notation (frequency, duration in seconds)
 // The classic "Na na na na na na na na BATMAN!"
 // The classic "Na na na na na na na na BATMAN!"
 const batmanTheme = [
+  ...batmanSongParts.lowNanaNanaNanaNana,
+  ...batmanSongParts.lowNanaNanaNanaNanaWithBatman,
+  ...batmanSongParts.lowNanaNanaNanaNana,
+  ...batmanSongParts.lowNanaNanaNanaNanaWithBatman,
   // Na na na na - Use perfect fifths for clean harmony
-  [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
+  // [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
   // Na na na na - Use major thirds for bright harmony
-  [NOTE_Ab4, 0.3], [NOTE_F4, 0.3], [NOTE_Ab4, 0.3], [NOTE_F4, 0.3],
+  // [NOTE_Ab4, 0.3], [NOTE_F4, 0.3], [NOTE_Ab4, 0.3], [NOTE_F4, 0.3],
   // Na na na na - Perfect fifths again
-  [NOTE_A4, 0.3], [NOTE_Gb4, 0.3], [NOTE_A4, 0.3], [NOTE_Gb4, 0.3],
+  // [NOTE_A4, 0.3], [NOTE_Gb4, 0.3], [NOTE_A4, 0.3], [NOTE_Gb4, 0.3],
   // Na na na na - Use perfect fifths for clean harmony
-  [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
+  // [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
   // BAT-MAN! - Use octaves and fifths for dramatic ending
-  [[NOTE_C5, NOTE_C4], 0.6], [[NOTE_G4, NOTE_G3], 0.8]
+  // [[NOTE_C5, NOTE_C4], 0.6], [[NOTE_G4, NOTE_G3], 0.8]
+
 ];
 
 /**
