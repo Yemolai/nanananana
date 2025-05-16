@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-
+#!/usr/b// Batman theme notation (frequency, duration in seconds)
 /**
  * nananana - Play the Batman theme song from your terminal
  * This program uses native Node.js capabilities to play the sound
@@ -12,19 +11,95 @@ const YELLOW = '\x1b[33m';
 const BOLD = '\x1b[1m';
 const BLACK_BG = '\x1b[40m';
 
-// Define the notes frequencies for the Batman theme
-const NOTE_C = 261.63;
-const NOTE_C_SHARP = 277.18; // C#/Db
-const NOTE_D = 293.66;
-const NOTE_D_SHARP = 311.13; // D#/Eb
-const NOTE_E = 329.63;
-const NOTE_F = 349.23;
-const NOTE_F_SHARP = 369.99; // F#/Gb
-const NOTE_G = 392.00;
-const NOTE_G_SHARP = 415.30; // G#/Ab
-const NOTE_A = 440.00;
-const NOTE_A_SHARP = 466.16; // A#/Bb
-const NOTE_B = 493.88;
+// Define the notes frequencies across multiple octaves
+// Octave 2
+const NOTE_C2 = 65.41;
+const NOTE_Db2 = 69.30;  // Same as C#2
+const NOTE_D2 = 73.42;
+const NOTE_Eb2 = 77.78;  // Same as D#2
+const NOTE_E2 = 82.41;
+const NOTE_F2 = 87.31;
+const NOTE_Gb2 = 92.50;  // Same as F#2
+const NOTE_G2 = 98.00;
+const NOTE_Ab2 = 103.83; // Same as G#2
+const NOTE_A2 = 110.00;
+const NOTE_Bb2 = 116.54; // Same as A#2
+const NOTE_B2 = 123.47;
+
+// Octave 3
+const NOTE_C3 = 130.81;
+const NOTE_Db3 = 138.59; // Same as C#3
+const NOTE_D3 = 146.83;
+const NOTE_Eb3 = 155.56; // Same as D#3
+const NOTE_E3 = 164.81;
+const NOTE_F3 = 174.61;
+const NOTE_Gb3 = 185.00; // Same as F#3
+const NOTE_G3 = 196.00;
+const NOTE_Ab3 = 207.65; // Same as G#3
+const NOTE_A3 = 220.00;
+const NOTE_Bb3 = 233.08; // Same as A#3
+const NOTE_B3 = 246.94;
+
+// Octave 4 (middle C is C4)
+const NOTE_C4 = 261.63;
+const NOTE_Db4 = 277.18; // Same as C#4
+const NOTE_D4 = 293.66;
+const NOTE_Eb4 = 311.13; // Same as D#4
+const NOTE_E4 = 329.63;
+const NOTE_F4 = 349.23;
+const NOTE_Gb4 = 369.99; // Same as F#4
+const NOTE_G4 = 392.00;
+const NOTE_Ab4 = 415.30; // Same as G#4
+const NOTE_A4 = 440.00;  // A440 concert pitch standard
+const NOTE_Bb4 = 466.16; // Same as A#4
+const NOTE_B4 = 493.88;
+
+// Octave 5
+const NOTE_C5 = 523.25;
+const NOTE_Db5 = 554.37; // Same as C#5
+const NOTE_D5 = 587.33;
+const NOTE_Eb5 = 622.25; // Same as D#5
+const NOTE_E5 = 659.26;
+const NOTE_F5 = 698.46;
+const NOTE_Gb5 = 739.99; // Same as F#5
+const NOTE_G5 = 783.99;
+const NOTE_Ab5 = 830.61; // Same as G#5
+const NOTE_A5 = 880.00;
+const NOTE_Bb5 = 932.33; // Same as A#5
+const NOTE_B5 = 987.77;
+
+// Octave 6
+const NOTE_C6 = 1046.50;
+
+// Legacy aliases for backward compatibility
+const NOTE_C = NOTE_C4;
+const NOTE_C_SHARP = NOTE_Db4;
+const NOTE_D = NOTE_D4;
+const NOTE_D_SHARP = NOTE_Eb4;
+const NOTE_E = NOTE_E4;
+const NOTE_F = NOTE_F4;
+const NOTE_F_SHARP = NOTE_Gb4;
+const NOTE_G = NOTE_G4;
+const NOTE_G_SHARP = NOTE_Ab4;
+const NOTE_A = NOTE_A4;
+const NOTE_A_SHARP = NOTE_Bb4;
+const NOTE_B = NOTE_B4;
+
+// Batman theme notation (frequency, duration in seconds)
+// The classic "Na na na na na na na na BATMAN!"
+// The classic "Na na na na na na na na BATMAN!"
+const batmanTheme = [
+  // Na na na na - Use perfect fifths for clean harmony
+  [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
+  // Na na na na - Use major thirds for bright harmony
+  [NOTE_Ab4, 0.3], [NOTE_F4, 0.3], [NOTE_Ab4, 0.3], [NOTE_F4, 0.3],
+  // Na na na na - Perfect fifths again
+  [NOTE_A4, 0.3], [NOTE_Gb4, 0.3], [NOTE_A4, 0.3], [NOTE_Gb4, 0.3],
+  // Na na na na - Use perfect fifths for clean harmony
+  [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
+  // BAT-MAN! - Use octaves and fifths for dramatic ending
+  [[NOTE_C5, NOTE_C4], 0.6], [[NOTE_G4, NOTE_G3], 0.8]
+];
 
 /**
  * Creates a PCM Wave data for a sound of specified frequency and duration
@@ -297,21 +372,6 @@ async function playBatmanTheme() {
   displayBatmanLogo();
 
   console.log(`${YELLOW}${BOLD}Playing Batman Theme...${RESET}`);
-
-  // Batman theme notation (frequency, duration in seconds)
-  // The classic "Na na na na na na na na BATMAN!"
-  const batmanTheme = [
-    // Na na na na - Use perfect fifths for clean harmony
-    [NOTE_G, 0.3], [NOTE_E, 0.3], [NOTE_G, 0.3], [NOTE_E, 0.3],
-    // Na na na na - Use major thirds for bright harmony
-    [NOTE_G_SHARP, 0.3], [NOTE_F, 0.3], [NOTE_G_SHARP, 0.3], [NOTE_F, 0.3],
-    // Na na na na - Perfect fifths again
-    [NOTE_A, 0.3], [NOTE_F_SHARP, 0.3], [NOTE_A, 0.3], [NOTE_F_SHARP, 0.3],
-    // Na na na na - Use perfect fifths for clean harmony
-    [NOTE_G, 0.3], [NOTE_E, 0.3], [NOTE_G, 0.3], [NOTE_E, 0.3],
-    // BAT-MAN! - Use octaves and fifths for dramatic ending
-    [[NOTE_C * 2, NOTE_C], 0.6], [[NOTE_G, NOTE_G / 2], 0.8]
-  ];
 
   // Special handling for macOS to create a single WAV file with all notes
   if (process.platform === 'darwin') {
