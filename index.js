@@ -57,7 +57,14 @@ async function playTone(freq, duration) {
     if (process.platform === 'win32') {
       // Windows has a native beep function
       const { exec } = require('child_process');
-      exec(`powershell -c "[console]::beep(${Math.round(freq)}, ${Math.round(duration * 1000)})"`, resolve);
+      // On Windows, we'll schedule the resolve slightly before the sound actually ends
+      // to ensure smoother transitions between notes
+      const playDuration = Math.round(duration * 1000);
+      exec(`powershell -c "[console]::beep(${Math.round(freq)}, ${playDuration})"`, () => resolve());
+      // Ensure the next note can start preparing while this one is still finishing
+      if (playDuration > 50) {
+        setTimeout(resolve, playDuration - 10);
+      }
     } else {
       // For other platforms we'll use stdout to output the sound
       const sampleRate = 44100;
@@ -102,7 +109,11 @@ async function playTone(freq, duration) {
         
         play.on('close', () => {
           // Cleanup the temp file
-          fs.unlinkSync(tempFile);
+          try {
+            fs.unlinkSync(tempFile);
+          } catch (e) {
+            // Ignore errors in cleanup
+          }
           resolve();
         });
       } else {
@@ -123,8 +134,8 @@ async function playTone(freq, duration) {
 async function playSequence(sequence) {
   for (const [freq, duration] of sequence) {
     await playTone(freq, duration);
-    // Small gap between notes
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Minimal gap between notes (or no gap at all)
+    await new Promise(resolve => setTimeout(resolve, 5));
   }
 }
 
@@ -171,9 +182,94 @@ async function playBatmanTheme() {
     [NOTE_C * 2, 0.6], [NOTE_G, 0.8]
   ];
   
-  await playSequence(batmanTheme);
+  // Special handling for macOS to create a single WAV file with all notes
+  if (process.platform === 'darwin') {
+    await playSequenceAsOneFile(batmanTheme);
+  } else {
+    await playSequence(batmanTheme);
+  }
   
   console.log(`${YELLOW}${BOLD}BATMAN!${RESET}`);
+}
+
+/**
+ * For macOS, plays all notes as a single continuous WAV file
+ * This eliminates gaps between notes completely
+ * @param {Array} sequence - Array of [frequency, duration] pairs
+ */
+async function playSequenceAsOneFile(sequence) {
+  if (process.platform !== 'darwin') {
+    return playSequence(sequence);
+  }
+  
+  const fs = require('fs');
+  const { spawn } = require('child_process');
+  const sampleRate = 44100;
+  
+  // Calculate total duration and sample count
+  const totalDuration = sequence.reduce((sum, [_, duration]) => sum + duration, 0);
+  const totalSamples = Math.ceil(sampleRate * totalDuration);
+  
+  // Create a buffer for the entire sequence
+  const buffer = new Int16Array(totalSamples);
+  
+  // Fill the buffer with the sequence of notes
+  let sampleIndex = 0;
+  for (const [freq, duration] of sequence) {
+    const noteBuffer = createWave(freq, duration, sampleRate);
+    // Copy this note's samples to the main buffer
+    for (let i = 0; i < noteBuffer.length; i++) {
+      if (sampleIndex < buffer.length) {
+        buffer[sampleIndex++] = noteBuffer[i];
+      }
+    }
+  }
+  
+  // Convert the filled buffer to a Node.js Buffer
+  const audioBuffer = Buffer.from(buffer.buffer);
+  
+  // Create a temporary WAV file
+  const tempFile = `/tmp/nananana-full-${Date.now()}.wav`;
+  
+  // Create WAV header
+  const header = Buffer.alloc(44);
+  
+  // RIFF chunk descriptor
+  header.write('RIFF', 0);
+  header.writeUInt32LE(36 + audioBuffer.length, 4); // File size
+  header.write('WAVE', 8);
+  
+  // "fmt " sub-chunk
+  header.write('fmt ', 12);
+  header.writeUInt32LE(16, 16); // Length of format data
+  header.writeUInt16LE(1, 20); // PCM format
+  header.writeUInt16LE(1, 22); // Mono channel
+  header.writeUInt32LE(sampleRate, 24); // Sample rate
+  header.writeUInt32LE(sampleRate * 2, 28); // Byte rate (SampleRate * NumChannels * BitsPerSample/8)
+  header.writeUInt16LE(2, 32); // Block align (NumChannels * BitsPerSample/8)
+  header.writeUInt16LE(16, 34); // Bits per sample
+  
+  // "data" sub-chunk
+  header.write('data', 36);
+  header.writeUInt32LE(audioBuffer.length, 40); // Data size
+  
+  // Write the complete WAV file
+  fs.writeFileSync(tempFile, Buffer.concat([header, audioBuffer]));
+  
+  // Play the file
+  return new Promise(resolve => {
+    const play = spawn('afplay', [tempFile]);
+    
+    play.on('close', () => {
+      // Cleanup
+      try {
+        fs.unlinkSync(tempFile);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+      resolve();
+    });
+  });
 }
 
 // Run the theme
