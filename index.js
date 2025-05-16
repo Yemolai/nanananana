@@ -37,48 +37,84 @@ function createWave(freq, duration, sampleRate = 44100) {
   const MAX_AMPLITUDE = 32760; // Maximum amplitude for 16-bit audio (slightly below max to prevent clipping)
   const numSamples = Math.ceil(sampleRate * duration);
   const buffer = new Int16Array(numSamples);
-  
-  // Handle both single notes and chords
-  const frequencies = Array.isArray(freq) ? freq : [freq];
-  
-  // If we have a chord, limit the number of notes to prevent distortion
-  const limitedFrequencies = frequencies.slice(0, 3); // Max 3 notes for cleaner sound
-  
-  // Calculate a proper amplitude scale that won't distort
-  // Using a more conservative approach to prevent clipping
-  const amplitudeScale = MAX_AMPLITUDE / (limitedFrequencies.length * 1.5);
-  
-  // Generate a cleaner wave with harmonic balance
-  for (let i = 0; i < numSamples; i++) {
-    let sample = 0;
-    
-    // Add each frequency component with different weights
-    // This creates a more balanced sound
-    for (let j = 0; j < limitedFrequencies.length; j++) {
-      const f = limitedFrequencies[j];
-      // Apply slight envelope to avoid clicks and pops at start/end
+
+  // Handle single note case directly
+  if (!Array.isArray(freq)) {
+    // Simple sine wave for a single frequency
+    for (let i = 0; i < numSamples; i++) {
+      // Apply envelope to avoid pops
       let envelope = 1.0;
-      const fadeTime = Math.min(0.01 * sampleRate, numSamples * 0.1); // 10ms fade or 10% of duration
-      
+      const fadeTime = Math.min(0.005 * sampleRate, numSamples * 0.05); // 5ms fade or 5% of duration
+
       if (i < fadeTime) {
         envelope = i / fadeTime; // Fade in
       } else if (i > numSamples - fadeTime) {
         envelope = (numSamples - i) / fadeTime; // Fade out
       }
-      
-      // Weight the frequencies differently for better balance
-      const weight = j === 0 ? 1.0 : 0.6; // Primary note louder than harmonics
-      sample += weight * envelope * Math.sin(2 * Math.PI * f * i / sampleRate);
+
+      buffer[i] = Math.round(MAX_AMPLITUDE * envelope * Math.sin(2 * Math.PI * freq * i / sampleRate));
     }
-    
-    // Apply a soft limiter to prevent harsh clipping
-    if (sample > 1.0) sample = 1.0;
-    if (sample < -1.0) sample = -1.0;
-    
-    // Scale and round the final sample
-    buffer[i] = Math.round(amplitudeScale * sample);
+    return buffer;
   }
-  
+
+  // For chords, use a different approach with harmonics
+  const frequencies = Array.isArray(freq) ? freq : [freq];
+
+  // Sort frequencies from lowest to highest and limit to max 2 notes for clarity
+  const sortedFrequencies = [...frequencies].sort((a, b) => a - b).slice(0, 2);
+
+  // Get the root (lowest) frequency
+  const rootFrequency = sortedFrequencies[0];
+
+  // Generate a more complex waveform with harmonics based on the root note
+  // This creates a richer sound that sounds like a chord without the beating effect
+  for (let i = 0; i < numSamples; i++) {
+    // Apply envelope for smooth start/end
+    let envelope = 1.0;
+    const fadeTime = Math.min(0.005 * sampleRate, numSamples * 0.05);
+
+    if (i < fadeTime) {
+      envelope = i / fadeTime; // Fade in
+    } else if (i > numSamples - fadeTime) {
+      envelope = (numSamples - i) / fadeTime; // Fade out
+    }
+
+    // Start with the fundamental frequency (root note)
+    let sample = Math.sin(2 * Math.PI * rootFrequency * i / sampleRate);
+
+    // If we have a second note, add it with adjustments to prevent beats
+    if (sortedFrequencies.length > 1) {
+      // Add harmonics based on the interval between the two notes
+      const secondFreq = sortedFrequencies[1];
+
+      // Find the ratio between frequencies (important for harmonic relationships)
+      const ratio = secondFreq / rootFrequency;
+
+      // Add the second note with reduced amplitude
+      sample += 0.5 * Math.sin(2 * Math.PI * secondFreq * i / sampleRate);
+
+      // Add a harmonic that will create a pleasing combined sound
+      // This is based on the harmonic series and helps blend the notes
+      sample += 0.3 * Math.sin(2 * Math.PI * rootFrequency * 2 * i / sampleRate); // First overtone
+
+      // If the ratio is close to a perfect fifth (3:2 ~ 1.5), add that harmonic
+      if (ratio > 1.4 && ratio < 1.6) {
+        sample += 0.2 * Math.sin(2 * Math.PI * rootFrequency * 1.5 * i / sampleRate);
+      }
+
+      // If the ratio is close to a major third (5:4 ~ 1.25), add that harmonic
+      if (ratio > 1.2 && ratio < 1.3) {
+        sample += 0.15 * Math.sin(2 * Math.PI * rootFrequency * 1.25 * i / sampleRate);
+      }
+    }
+
+    // Normalize the sample between -1 and 1
+    sample = Math.max(-1.0, Math.min(1.0, sample / (sortedFrequencies.length > 1 ? 2.0 : 1.0)));
+
+    // Apply envelope and scale to our amplitude range
+    buffer[i] = Math.round(MAX_AMPLITUDE * envelope * sample);
+  }
+
   return buffer;
 }
 
@@ -92,17 +128,16 @@ async function playTone(freq, duration) {
   return new Promise(resolve => {
     if (process.platform === 'win32') {
       // Windows has a native beep function, but it can only play one frequency at a time
-      // For chords on Windows, we'll play sequentially with minimal overlap
+      // For chords on Windows, we'll use the root frequency for simplicity
       if (Array.isArray(freq)) {
-        // For chords on Windows, limit to max 2 notes and focus on the main melody note
-        const limitedFreq = freq.slice(0, 2);
+        // Get the most important frequency from the chord (usually the lowest)
+        const mainFreq = freq[0];
         const { exec } = require('child_process');
         const playDuration = Math.round(duration * 1000);
-        
-        // On Windows, we'll just play the primary note for chords to avoid distortion
-        // This preserves the melody even though we lose the harmony
-        exec(`powershell -c "[console]::beep(${Math.round(limitedFreq[0])}, ${playDuration})"`, () => resolve());
-        
+
+        // Play the main note of the chord
+        exec(`powershell -c "[console]::beep(${Math.round(mainFreq)}, ${playDuration})"`, () => resolve());
+
         if (playDuration > 50) {
           setTimeout(resolve, playDuration - 10);
         }
@@ -170,23 +205,23 @@ async function playTone(freq, duration) {
         // For Linux, we can't really do chords with the terminal bell
         // So we'll just use the first frequency if it's an array
         process.stdout.write('\u0007');
-        
+
         // Try playing through aplay if available (for better Linux support)
         if (Array.isArray(freq)) {
           try {
             const { spawnSync } = require('child_process');
             // Check if aplay is available
             const checkAplay = spawnSync('which', ['aplay']);
-            
+
             if (checkAplay.status === 0) {
               // aplay exists, try to use it for better sound quality
               const fs = require('fs');
               const { spawn } = require('child_process');
               const tempFile = `/tmp/nananana-${Date.now()}.wav`;
-              
+
               // Create a simple WAV file similar to macOS approach
               const header = Buffer.alloc(44);
-              
+
               // Same WAV header as in macOS block
               header.write('RIFF', 0);
               header.writeUInt32LE(36 + buffer.length, 4);
@@ -201,21 +236,21 @@ async function playTone(freq, duration) {
               header.writeUInt16LE(16, 34);
               header.write('data', 36);
               header.writeUInt32LE(buffer.length, 40);
-              
+
               // Write and play
               fs.writeFileSync(tempFile, Buffer.concat([header, buffer]));
               spawn('aplay', [tempFile]);
-              
+
               // Cleanup after playing
               setTimeout(() => {
-                try { fs.unlinkSync(tempFile); } catch(e) {}
+                try { fs.unlinkSync(tempFile); } catch (e) { }
               }, duration * 1000 + 100);
             }
           } catch (err) {
             // Fall back to default behavior
           }
         }
-        
+
         // Wait for the duration to finish
         setTimeout(resolve, duration * 1000);
       }
@@ -266,16 +301,16 @@ async function playBatmanTheme() {
   // Batman theme notation (frequency, duration in seconds)
   // The classic "Na na na na na na na na BATMAN!"
   const batmanTheme = [
-    // Na na na na - use selective chords that sound good together
-    [NOTE_G, 0.3], [[NOTE_G, NOTE_E], 0.3], [NOTE_G, 0.3], [[NOTE_G, NOTE_E], 0.3],
-    // Na na na na
-    [NOTE_G_SHARP, 0.3], [[NOTE_G_SHARP, NOTE_F], 0.3], [NOTE_G_SHARP, 0.3], [[NOTE_G_SHARP, NOTE_F], 0.3],
-    // Na na na na
-    [NOTE_A, 0.3], [[NOTE_A, NOTE_F_SHARP], 0.3], [NOTE_A, 0.3], [[NOTE_A, NOTE_F_SHARP], 0.3],
-    // Na na na na
-    [NOTE_G, 0.3], [[NOTE_G, NOTE_E], 0.3], [NOTE_G, 0.3], [[NOTE_G, NOTE_E], 0.3],
-    // BAT-MAN! - use carefully balanced triads
-    [[NOTE_C * 2, NOTE_G], 0.6], [[NOTE_G, NOTE_D], 0.8]
+    // Na na na na - Use perfect fifths for clean harmony
+    [NOTE_G, 0.3], [NOTE_E, 0.3], [NOTE_G, 0.3], [NOTE_E, 0.3],
+    // Na na na na - Use major thirds for bright harmony
+    [NOTE_G_SHARP, 0.3], [NOTE_F, 0.3], [NOTE_G_SHARP, 0.3], [NOTE_F, 0.3],
+    // Na na na na - Perfect fifths again
+    [NOTE_A, 0.3], [NOTE_F_SHARP, 0.3], [NOTE_A, 0.3], [NOTE_F_SHARP, 0.3],
+    // Na na na na - Use perfect fifths for clean harmony
+    [NOTE_G, 0.3], [NOTE_E, 0.3], [NOTE_G, 0.3], [NOTE_E, 0.3],
+    // BAT-MAN! - Use octaves and fifths for dramatic ending
+    [[NOTE_C * 2, NOTE_C], 0.6], [[NOTE_G, NOTE_G / 2], 0.8]
   ];
 
   // Special handling for macOS to create a single WAV file with all notes
@@ -297,29 +332,29 @@ async function playSequenceAsOneFile(sequence) {
   if (process.platform !== 'darwin') {
     return playSequence(sequence);
   }
-  
+
   const fs = require('fs');
   const { spawn } = require('child_process');
   const sampleRate = 44100;
-  
+
   // Calculate total duration and sample count
   const totalDuration = sequence.reduce((sum, [_, duration]) => sum + duration, 0);
   const totalSamples = Math.ceil(sampleRate * totalDuration);
-  
+
   // Create a buffer for the entire sequence
   const buffer = new Int16Array(totalSamples);
-  
+
   // Fill the buffer with the sequence of notes
   let sampleIndex = 0;
-  
+
   // Track the previous note for crossfading
   let prevNoteBuffer = null;
   let crossfadeLength = Math.floor(sampleRate * 0.01); // 10ms crossfade
-  
+
   for (const [freq, duration] of sequence) {
     // Generate the current note
     const noteBuffer = createWave(freq, duration, sampleRate);
-    
+
     // Apply crossfade if we have a previous note
     if (prevNoteBuffer && crossfadeLength > 0) {
       // We'll only crossfade at the beginning of this note
@@ -327,41 +362,41 @@ async function playSequenceAsOneFile(sequence) {
       for (let i = 0; i < Math.min(crossfadeLength, noteBuffer.length); i++) {
         const fadeRatio = i / crossfadeLength; // 0 to 1
         const prevFadeRatio = 1 - fadeRatio;
-        
+
         // Crossfade the last few samples of prev note with first few of current
         if (sampleIndex - crossfadeLength + i >= 0 && sampleIndex - crossfadeLength + i < buffer.length) {
-          buffer[sampleIndex - crossfadeLength + i] = 
-            Math.round((prevNoteBuffer[prevNoteBuffer.length - crossfadeLength + i] * prevFadeRatio) + 
-                       (noteBuffer[i] * fadeRatio));
+          buffer[sampleIndex - crossfadeLength + i] =
+            Math.round((prevNoteBuffer[prevNoteBuffer.length - crossfadeLength + i] * prevFadeRatio) +
+              (noteBuffer[i] * fadeRatio));
         }
       }
     }
-    
+
     // Copy the main part of this note (after any crossfade section)
     for (let i = (prevNoteBuffer ? crossfadeLength : 0); i < noteBuffer.length; i++) {
       if (sampleIndex < buffer.length) {
         buffer[sampleIndex++] = noteBuffer[i];
       }
     }
-    
+
     // Save this note for possible crossfade with the next
     prevNoteBuffer = noteBuffer;
   }
-  
+
   // Convert the filled buffer to a Node.js Buffer
   const audioBuffer = Buffer.from(buffer.buffer);
-  
+
   // Create a temporary WAV file
   const tempFile = `/tmp/nananana-full-${Date.now()}.wav`;
-  
+
   // Create WAV header
   const header = Buffer.alloc(44);
-  
+
   // RIFF chunk descriptor
   header.write('RIFF', 0);
   header.writeUInt32LE(36 + audioBuffer.length, 4); // File size
   header.write('WAVE', 8);
-  
+
   // "fmt " sub-chunk
   header.write('fmt ', 12);
   header.writeUInt32LE(16, 16); // Length of format data
@@ -371,18 +406,18 @@ async function playSequenceAsOneFile(sequence) {
   header.writeUInt32LE(sampleRate * 2, 28); // Byte rate (SampleRate * NumChannels * BitsPerSample/8)
   header.writeUInt16LE(2, 32); // Block align (NumChannels * BitsPerSample/8)
   header.writeUInt16LE(16, 34); // Bits per sample
-  
+
   // "data" sub-chunk
   header.write('data', 36);
   header.writeUInt32LE(audioBuffer.length, 40); // Data size
-  
+
   // Write the complete WAV file
   fs.writeFileSync(tempFile, Buffer.concat([header, audioBuffer]));
-  
+
   // Play the file
   return new Promise(resolve => {
     const play = spawn('afplay', [tempFile]);
-    
+
     play.on('close', () => {
       // Cleanup
       try {

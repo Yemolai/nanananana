@@ -26,7 +26,8 @@ nananana
 
 - Plays the classic "Na na na na na na na na BATMAN!" theme with melodic variations
 - Uses a full range of notes including sharps/flats for a more dynamic melody
-- Supports playing chords (multiple notes simultaneously)
+- Supports playing chords using proper harmonic synthesis (multiple notes as one sound)
+- Uses music theory principles to create clean, non-vibrating chord sounds
 - No external dependencies required to play sounds
 - Works on macOS, Windows, and Linux
 - Displays a cool Batman logo
