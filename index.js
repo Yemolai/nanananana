@@ -1,6 +1,6 @@
 #!/usr/b// Batman theme notation (frequency, duration in seconds)
 /**
- * nananana - Play the Batman theme song from your terminal
+ * nanananana - Play the Batman theme song from your terminal
  * This program uses native Node.js capabilities to play the sound
  * without any external dependencies.
  */
@@ -71,21 +71,7 @@ const NOTE_B5 = 987.77;
 // Octave 6
 const NOTE_C6 = 1046.50;
 
-// Legacy aliases for backward compatibility
-const NOTE_C = NOTE_C4;
-const NOTE_C_SHARP = NOTE_Db4;
-const NOTE_D = NOTE_D4;
-const NOTE_D_SHARP = NOTE_Eb4;
-const NOTE_E = NOTE_E4;
-const NOTE_F = NOTE_F4;
-const NOTE_F_SHARP = NOTE_Gb4;
-const NOTE_G = NOTE_G4;
-const NOTE_G_SHARP = NOTE_Ab4;
-const NOTE_A = NOTE_A4;
-const NOTE_A_SHARP = NOTE_Bb4;
-const NOTE_B = NOTE_B4;
-
-const batmanSongParts = {
+const basicSongParts = {
   lowNanaNanaNanaNana: [
     [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22],
     [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22],
@@ -97,9 +83,9 @@ const batmanSongParts = {
     [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
   ],
   lowNanaNanaNanaNanaWithBatman: [
-    [[NOTE_G3, NOTE_D4, NOTE_D5, NOTE_G4, NOTE_D5, NOTE_F5, NOTE_G5], 0.22],
-    [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22],
-    [[NOTE_G3, NOTE_Db4, NOTE_Db5, NOTE_G4, NOTE_D5, NOTE_F5, NOTE_G5], 0.22],
+    [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22, [NOTE_G4, NOTE_D5, NOTE_F5, NOTE_G5], 0.44], // left hand, left hand duration, right hand, diff right hand notes duration
+    [[NOTE_G3, NOTE_D4, NOTE_D5], 0.22], // if no right hand, play only left hand and wait for right hand previous notes durations to finish
+    [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22, [NOTE_G4, NOTE_D5, NOTE_F5, NOTE_G5], 1.44], // left hand, left hand duration, right hand, longer right hand duration
     [[NOTE_G3, NOTE_Db4, NOTE_Db5], 0.22],
     [[NOTE_G3, NOTE_C4, NOTE_C5], 0.22],
     [[NOTE_G3, NOTE_C4, NOTE_C5], 0.22],
@@ -111,48 +97,88 @@ const batmanSongParts = {
 // Batman theme notation (frequency, duration in seconds)
 // The classic "Na na na na na na na na BATMAN!"
 // The classic "Na na na na na na na na BATMAN!"
-const batmanTheme = [
-  ...batmanSongParts.lowNanaNanaNanaNana,
-  ...batmanSongParts.lowNanaNanaNanaNanaWithBatman,
-  ...batmanSongParts.lowNanaNanaNanaNana,
-  ...batmanSongParts.lowNanaNanaNanaNanaWithBatman,
-  // Na na na na - Use perfect fifths for clean harmony
-  // [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
-  // Na na na na - Use major thirds for bright harmony
-  // [NOTE_Ab4, 0.3], [NOTE_F4, 0.3], [NOTE_Ab4, 0.3], [NOTE_F4, 0.3],
-  // Na na na na - Perfect fifths again
-  // [NOTE_A4, 0.3], [NOTE_Gb4, 0.3], [NOTE_A4, 0.3], [NOTE_Gb4, 0.3],
-  // Na na na na - Use perfect fifths for clean harmony
-  // [NOTE_G4, 0.3], [NOTE_E4, 0.3], [NOTE_G4, 0.3], [NOTE_E4, 0.3],
-  // BAT-MAN! - Use octaves and fifths for dramatic ending
-  // [[NOTE_C5, NOTE_C4], 0.6], [[NOTE_G4, NOTE_G3], 0.8]
-
+const basicTheme = [
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNanaWithBatman,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNanaWithBatman,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNanaWithBatman,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNanaWithBatman,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNanaWithBatman,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNana,
+  ...basicSongParts.lowNanaNanaNanaNanaWithBatman,
 ];
 
 /**
  * Creates a PCM Wave data for a sound of specified frequency and duration
- * @param {number|number[]} freq - The frequency in Hz or array of frequencies for chords
+ * @param {number|number[]|null} freq - The frequency in Hz or array of frequencies for chords, null for silence
  * @param {number} duration - The duration in seconds
  * @param {number} sampleRate - The sample rate (default 44100)
+ * @param {Object} options - Additional options for sound generation
  * @returns {Int16Array} - PCM audio data
  */
-function createWave(freq, duration, sampleRate = 44100) {
+function createWave(freq, duration, sampleRate = 44100, options = {}) {
   const MAX_AMPLITUDE = 32760; // Maximum amplitude for 16-bit audio (slightly below max to prevent clipping)
   const numSamples = Math.ceil(sampleRate * duration);
   const buffer = new Int16Array(numSamples);
+
+  // Set default options
+  const opts = {
+    fadeIn: 0.005, // 5ms default fade in (as fraction of duration)
+    fadeOut: 0.05, // 5% default fade out (as fraction of duration)
+    sustainLevel: 0.8, // Volume level during sustain phase (80% for piano-like sound)
+    decayRate: 0.5, // How much the sound decays over time (0 = no decay, 1 = full decay)
+    attackCurve: 0.8, // Attack curve shape (higher = more curved, more piano-like)
+    releaseCurve: 0.7, // Release curve shape (higher = more curved)
+    harmonicRichness: 0.3, // Amount of harmonic content (0-1)
+    ...options
+  };
+
+  // Handle silence/rest case
+  if (freq === null) {
+    return buffer; // Return a buffer of zeros (silence)
+  }
 
   // Handle single note case directly
   if (!Array.isArray(freq)) {
     // Simple sine wave for a single frequency
     for (let i = 0; i < numSamples; i++) {
-      // Apply envelope to avoid pops
+      // Calculate envelope with piano-like ADSR (Attack, Decay, Sustain, Release)
+      const position = i / numSamples; // Position in the sample (0 to 1)
       let envelope = 1.0;
-      const fadeTime = Math.min(0.005 * sampleRate, numSamples * 0.05); // 5ms fade or 5% of duration
 
-      if (i < fadeTime) {
-        envelope = i / fadeTime; // Fade in
-      } else if (i > numSamples - fadeTime) {
-        envelope = (numSamples - i) / fadeTime; // Fade out
+      // Improved piano-like envelope
+      const attackTime = Math.min(opts.fadeIn * numSamples, numSamples * 0.05); // Max 5% for attack
+      const decayTime = Math.min(0.15 * numSamples, numSamples * 0.3); // 15-30% decay phase
+      const releaseStartPosition = 0.9; // Start release at 90% of the duration
+      const releaseTime = numSamples * (1 - releaseStartPosition); // Last 10% for release
+
+      if (i < attackTime) {
+        // Attack phase - curved rise for piano-like attack
+        const normalizedPosition = i / attackTime;
+        envelope = Math.pow(normalizedPosition, opts.attackCurve); // Curved attack
+      } else if (i < attackTime + decayTime) {
+        // Decay phase - exponential falloff to sustain level
+        const decayPosition = (i - attackTime) / decayTime;
+        envelope = 1.0 - ((1.0 - opts.sustainLevel) * decayPosition);
+      } else if (position > releaseStartPosition) {
+        // Release phase - exponential falloff
+        const releasePosition = (i - (numSamples * releaseStartPosition)) / releaseTime;
+        envelope = opts.sustainLevel * Math.pow(1.0 - releasePosition, opts.releaseCurve);
+      } else {
+        // Sustain phase with gentle decay throughout
+        const sustainPosition = (i - (attackTime + decayTime)) / (numSamples * releaseStartPosition - (attackTime + decayTime));
+        const decayAmount = opts.decayRate * sustainPosition * (1.0 - opts.sustainLevel) * 0.3;
+        envelope = Math.max(opts.sustainLevel * 0.7, opts.sustainLevel - decayAmount);
       }
 
       buffer[i] = Math.round(MAX_AMPLITUDE * envelope * Math.sin(2 * Math.PI * freq * i / sampleRate));
@@ -163,8 +189,8 @@ function createWave(freq, duration, sampleRate = 44100) {
   // For chords, use a different approach with harmonics
   const frequencies = Array.isArray(freq) ? freq : [freq];
 
-  // Sort frequencies from lowest to highest and limit to max 2 notes for clarity
-  const sortedFrequencies = [...frequencies].sort((a, b) => a - b).slice(0, 2);
+  // Sort frequencies from lowest to highest
+  const sortedFrequencies = [...frequencies].sort((a, b) => a - b);
 
   // Get the root (lowest) frequency
   const rootFrequency = sortedFrequencies[0];
@@ -172,47 +198,93 @@ function createWave(freq, duration, sampleRate = 44100) {
   // Generate a more complex waveform with harmonics based on the root note
   // This creates a richer sound that sounds like a chord without the beating effect
   for (let i = 0; i < numSamples; i++) {
-    // Apply envelope for smooth start/end
+    // Apply piano-like envelope
+    const position = i / numSamples; // Position in the sample (0 to 1)
     let envelope = 1.0;
-    const fadeTime = Math.min(0.005 * sampleRate, numSamples * 0.05);
 
-    if (i < fadeTime) {
-      envelope = i / fadeTime; // Fade in
-    } else if (i > numSamples - fadeTime) {
-      envelope = (numSamples - i) / fadeTime; // Fade out
+    // Improved piano-like envelope
+    const attackTime = Math.min(opts.fadeIn * numSamples, numSamples * 0.05); // Max 5% for attack
+    const decayTime = Math.min(0.15 * numSamples, numSamples * 0.3); // 15-30% decay phase
+    const releaseStartPosition = 0.9; // Start release at 90% of the duration
+    const releaseTime = numSamples * (1 - releaseStartPosition); // Last 10% for release
+
+    if (i < attackTime) {
+      // Attack phase - curved rise for piano-like attack
+      const normalizedPosition = i / attackTime;
+      envelope = Math.pow(normalizedPosition, opts.attackCurve); // Curved attack
+    } else if (i < attackTime + decayTime) {
+      // Decay phase - exponential falloff to sustain level
+      const decayPosition = (i - attackTime) / decayTime;
+      envelope = 1.0 - ((1.0 - opts.sustainLevel) * decayPosition);
+    } else if (position > releaseStartPosition) {
+      // Release phase - exponential falloff
+      const releasePosition = (i - (numSamples * releaseStartPosition)) / releaseTime;
+      envelope = opts.sustainLevel * Math.pow(1.0 - releasePosition, opts.releaseCurve);
+    } else {
+      // Sustain phase with gentle decay throughout
+      const sustainPosition = (i - (attackTime + decayTime)) / (numSamples * releaseStartPosition - (attackTime + decayTime));
+      const decayAmount = opts.decayRate * sustainPosition * (1.0 - opts.sustainLevel) * 0.3;
+      envelope = Math.max(opts.sustainLevel * 0.7, opts.sustainLevel - decayAmount);
     }
 
     // Start with the fundamental frequency (root note)
     let sample = Math.sin(2 * Math.PI * rootFrequency * i / sampleRate);
 
-    // If we have a second note, add it with adjustments to prevent beats
-    if (sortedFrequencies.length > 1) {
-      // Add harmonics based on the interval between the two notes
-      const secondFreq = sortedFrequencies[1];
+    // Add all the chord tones
+    for (let j = 1; j < sortedFrequencies.length; j++) {
+      const noteFreq = sortedFrequencies[j];
 
       // Find the ratio between frequencies (important for harmonic relationships)
-      const ratio = secondFreq / rootFrequency;
+      const ratio = noteFreq / rootFrequency;
 
-      // Add the second note with reduced amplitude
-      sample += 0.5 * Math.sin(2 * Math.PI * secondFreq * i / sampleRate);
+      // Adjust amplitude based on position in the chord (higher notes are softer)
+      // This simulates the natural attenuation of higher frequencies in a piano
+      const noteAmplitude = 0.7 / Math.sqrt(j + 1);
 
-      // Add a harmonic that will create a pleasing combined sound
-      // This is based on the harmonic series and helps blend the notes
-      sample += 0.3 * Math.sin(2 * Math.PI * rootFrequency * 2 * i / sampleRate); // First overtone
+      // Add the fundamental of this note
+      sample += noteAmplitude * Math.sin(2 * Math.PI * noteFreq * i / sampleRate);
 
-      // If the ratio is close to a perfect fifth (3:2 ~ 1.5), add that harmonic
+      // Add the first overtone (one octave higher) for richness
+      // Higher notes have less pronounced overtones (like a real piano)
+      const overtoneStrength = opts.harmonicRichness * (1.0 - (j / sortedFrequencies.length) * 0.5);
+      sample += noteAmplitude * overtoneStrength * 0.3 * Math.sin(2 * Math.PI * noteFreq * 2 * i / sampleRate);
+
+      // Add subtle second overtone (octave + fifth)
+      sample += noteAmplitude * overtoneStrength * 0.15 * Math.sin(2 * Math.PI * noteFreq * 3 * i / sampleRate);
+
+      // Add harmonic interactions based on interval relationships
+      // Perfect fifth (~1.5 ratio)
       if (ratio > 1.4 && ratio < 1.6) {
-        sample += 0.2 * Math.sin(2 * Math.PI * rootFrequency * 1.5 * i / sampleRate);
+        sample += 0.12 * Math.sin(2 * Math.PI * rootFrequency * 1.5 * i / sampleRate);
       }
-
-      // If the ratio is close to a major third (5:4 ~ 1.25), add that harmonic
-      if (ratio > 1.2 && ratio < 1.3) {
-        sample += 0.15 * Math.sin(2 * Math.PI * rootFrequency * 1.25 * i / sampleRate);
+      // Octave (~2.0 ratio) 
+      if (ratio > 1.9 && ratio < 2.1) {
+        sample += 0.15 * Math.sin(2 * Math.PI * rootFrequency * 2 * i / sampleRate);
+      }
+      // Major third (~1.25 ratio)
+      if (ratio > 1.24 && ratio < 1.27) {
+        sample += 0.10 * Math.sin(2 * Math.PI * rootFrequency * 1.25 * i / sampleRate);
       }
     }
 
+    // Add a bit of the first and second overtones for all chords (makes them sound richer)
+    const baseOvertone = 0.2 * opts.harmonicRichness;
+    sample += baseOvertone * Math.sin(2 * Math.PI * rootFrequency * 2 * i / sampleRate);
+    sample += baseOvertone * 0.5 * Math.sin(2 * Math.PI * rootFrequency * 3 * i / sampleRate);
+
+    // Piano strings also vibrate slightly at inharmonic frequencies
+    // This subtle effect adds realism to the sound
+    if (opts.harmonicRichness > 0.2) {
+      const inharmonicity = 0.05 * opts.harmonicRichness;
+      sample += inharmonicity * Math.sin(2 * Math.PI * rootFrequency * 2.01 * i / sampleRate);
+      sample += inharmonicity * 0.5 * Math.sin(2 * Math.PI * rootFrequency * 3.02 * i / sampleRate);
+    }
+
     // Normalize the sample between -1 and 1
-    sample = Math.max(-1.0, Math.min(1.0, sample / (sortedFrequencies.length > 1 ? 2.0 : 1.0)));
+    // Account for all added harmonics to prevent clipping
+    const totalHarmonics = 1.0 + baseOvertone * 1.5 + (opts.harmonicRichness > 0.2 ? 0.075 * opts.harmonicRichness : 0);
+    const normalizationFactor = totalHarmonics + (sortedFrequencies.length - 1) * 0.7;
+    sample = Math.max(-1.0, Math.min(1.0, sample / normalizationFactor));
 
     // Apply envelope and scale to our amplitude range
     buffer[i] = Math.round(MAX_AMPLITUDE * envelope * sample);
@@ -223,12 +295,25 @@ function createWave(freq, duration, sampleRate = 44100) {
 
 /**
  * Plays a tone of specified frequency for a given duration
- * @param {number|number[]} freq - The frequency in Hz or array of frequencies for chords
+ * @param {number|number[]|null} freq - The frequency in Hz or array of frequencies for chords, null for silence
  * @param {number} duration - The duration in seconds
+ * @param {Object} options - Additional options for sound generation
  * @returns {Promise} - Resolves when the tone finishes playing
  */
-async function playTone(freq, duration) {
+async function playTone(freq, duration, options = {}) {
   return new Promise(resolve => {
+    // Handle silence/rest case
+    if (freq === null) {
+      setTimeout(resolve, duration * 1000);
+      return;
+    }
+
+    // Calculate envelope options based on duration
+    const envelopeOptions = {
+      // For longer notes, increase the decay rate for a more natural piano-like sound
+      decayRate: Math.min(0.7, duration * 0.5), // More decay for longer notes
+      ...options
+    };
     if (process.platform === 'win32') {
       // Windows has a native beep function, but it can only play one frequency at a time
       // For chords on Windows, we'll use the root frequency for simplicity
@@ -256,7 +341,7 @@ async function playTone(freq, duration) {
     } else {
       // For other platforms we can properly mix frequencies into a single wave
       const sampleRate = 44100;
-      const wave = createWave(freq, duration, sampleRate);
+      const wave = createWave(freq, duration, sampleRate, envelopeOptions);
 
       // Convert to Buffer for stdout
       const buffer = Buffer.from(wave.buffer);
@@ -363,13 +448,31 @@ async function playTone(freq, duration) {
 
 /**
  * Plays a sequence of notes with the specified timings
- * @param {Array} sequence - Array of [frequency, duration] pairs
+ * @param {Array} sequence - Array of [frequency, duration] pairs or [leftHand, leftDuration, rightHand, rightDuration]
  */
 async function playSequence(sequence) {
-  for (const [freq, duration] of sequence) {
-    await playTone(freq, duration);
-    // Minimal gap between notes (or no gap at all)
-    await new Promise(resolve => setTimeout(resolve, 5));
+  for (const item of sequence) {
+    if (item.length === 2) {
+      // Standard format: [frequency, duration]
+      const [freq, duration] = item;
+      await playTone(freq, duration);
+      // Minimal gap between notes (or no gap at all)
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    else if (item.length === 4) {
+      // Piano-style format: [leftHand, leftDuration, rightHand, rightDuration]
+      const [leftHandFreq, leftHandDuration, rightHandFreq, rightHandDuration] = item;
+
+      // Start both hands simultaneously and track them independently
+      const leftHandPromise = playTone(leftHandFreq, leftHandDuration);
+      const rightHandPromise = playTone(rightHandFreq, rightHandDuration);
+
+      // Wait for both to complete (the longer of the two will determine the total time)
+      await Promise.all([leftHandPromise, rightHandPromise]);
+
+      // Minimal gap between notes
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
   }
 }
 
@@ -377,19 +480,41 @@ async function playSequence(sequence) {
  * Displays Batman ASCII art
  */
 function displayBatmanLogo() {
-  console.log(`${YELLOW}${BOLD}${BLACK_BG}
-      _,    _   _    ,_
-  .o888P     Y8o8Y     Y888o.
- d88888      88888      88888b
-d888888b_  _d88888b_  _d888888b
-8888888888888888888888888888888
-8888888888888888888888888888888
-YJGS8P"Y888P"Y888P"Y888P"Y8888P
- Y888   '8'   Y8P   '8'   888Y
-  "8o          V          o8"
-    \`                     \`
+  const lines = `
+> var alfredNumber = 867-5309;
+
+> callAlfred(alfredNumber);
+
+> ...
+${YELLOW}${BOLD}
+> NaN NaN NaN NaN NaN NaN NaN NaN
+
+${BLACK_BG}
+ ____________________________________________________________
+|       _,     _   _     ,_                                  |
+|   .o888P     Y8o8Y     Y888o.     BBBBB      A     TTTTTTT |
+|  d88888      88888      88888b    B    B    A A       I    |
+| d888888b_  _d88888b_  _d888888b   BBBBB    A   A      I    |
+| 8888888888888888888888888888888   B    B  AAAAAAA     I    |
+| 8888888888888888888888888888888   BBBBB  A       A    I    |
+| 8888888888888888888888888888888                            |
+| 'JGS8P"Y888P"Y888P"Y888P"Y8888'   MM   MM     A     NN   N |
+|  Y888   '8'   Y8P   '8'   888Y    MMM MMM    A A    N N  N |
+|   "8o          V          o8"     M  M  M   AAAAA   N  N N |
+|     '                     '       M     M  A     A  N   NN |
+|____________________________________________________________|
   ${RESET}
-  `);
+
+
+
+
+  `.split('\n');
+  // prints a line each quarter second while music is playing
+  lines.forEach((line, index) => {
+    setTimeout(() => {
+      process.stdout.write(line + '\n');
+    }, index * ((120 / 152) * 1000));
+  });
 }
 
 /**
@@ -399,22 +524,32 @@ async function playBatmanTheme() {
   // Display Batman logo
   displayBatmanLogo();
 
-  console.log(`${YELLOW}${BOLD}Playing Batman Theme...${RESET}`);
+  // Check if we should play the extended theme
+  const args = process.argv.slice(2);
+  const playBasic = args.includes('--basic');
 
-  // Special handling for macOS to create a single WAV file with all notes
-  if (process.platform === 'darwin') {
-    await playSequenceAsOneFile(batmanTheme);
+  if (playBasic) {
+    // Play the classic theme
+    if (process.platform === 'darwin') {
+      await playSequenceAsOneFile(basicTheme);
+    } else {
+      await playSequence(basicTheme);
+    }
   } else {
-    await playSequence(batmanTheme);
-  }
+    const enhancedTheme = createPianoStyleBatmanTheme();
 
-  console.log(`${YELLOW}${BOLD}BATMAN!${RESET}`);
+    if (process.platform === 'darwin') {
+      await playSequenceAsOneFile(enhancedTheme);
+    } else {
+      await playSequence(enhancedTheme);
+    }
+  }
 }
 
 /**
  * For macOS, plays all notes as a single continuous WAV file
  * This eliminates gaps between notes completely
- * @param {Array} sequence - Array of [frequency, duration] pairs
+ * @param {Array} sequence - Array of [frequency, duration] pairs or [leftHand, leftDuration, rightHand, rightDuration]
  */
 async function playSequenceAsOneFile(sequence) {
   if (process.platform !== 'darwin') {
@@ -426,7 +561,18 @@ async function playSequenceAsOneFile(sequence) {
   const sampleRate = 44100;
 
   // Calculate total duration and sample count
-  const totalDuration = sequence.reduce((sum, [_, duration]) => sum + duration, 0);
+  let totalDuration = 0;
+  for (const item of sequence) {
+    if (item.length === 2) {
+      // Standard [freq, duration] format
+      totalDuration += item[1];
+    } else if (item.length === 4) {
+      // Piano-style [leftHand, leftDuration, rightHand, rightDuration]
+      // Use the maximum of the two durations
+      totalDuration += Math.max(item[1], item[3]);
+    }
+  }
+
   const totalSamples = Math.ceil(sampleRate * totalDuration);
 
   // Create a buffer for the entire sequence
@@ -439,36 +585,105 @@ async function playSequenceAsOneFile(sequence) {
   let prevNoteBuffer = null;
   let crossfadeLength = Math.floor(sampleRate * 0.01); // 10ms crossfade
 
-  for (const [freq, duration] of sequence) {
-    // Generate the current note
-    const noteBuffer = createWave(freq, duration, sampleRate);
+  for (const item of sequence) {
+    if (item.length === 2) {
+      // Standard [freq, duration] format
+      const [freq, duration] = item;
 
-    // Apply crossfade if we have a previous note
-    if (prevNoteBuffer && crossfadeLength > 0) {
-      // We'll only crossfade at the beginning of this note
-      // to smoothly transition from the previous note
-      for (let i = 0; i < Math.min(crossfadeLength, noteBuffer.length); i++) {
-        const fadeRatio = i / crossfadeLength; // 0 to 1
-        const prevFadeRatio = 1 - fadeRatio;
+      // Generate the current note with piano envelope based on duration
+      const envelopeOptions = {
+        decayRate: Math.min(0.7, duration * 0.5) // More decay for longer notes
+      };
+      const noteBuffer = createWave(freq, duration, sampleRate, envelopeOptions);
 
-        // Crossfade the last few samples of prev note with first few of current
-        if (sampleIndex - crossfadeLength + i >= 0 && sampleIndex - crossfadeLength + i < buffer.length) {
-          buffer[sampleIndex - crossfadeLength + i] =
-            Math.round((prevNoteBuffer[prevNoteBuffer.length - crossfadeLength + i] * prevFadeRatio) +
-              (noteBuffer[i] * fadeRatio));
+      // Apply crossfade if we have a previous note
+      if (prevNoteBuffer && crossfadeLength > 0) {
+        // We'll only crossfade at the beginning of this note
+        // to smoothly transition from the previous note
+        for (let i = 0; i < Math.min(crossfadeLength, noteBuffer.length); i++) {
+          const fadeRatio = i / crossfadeLength; // 0 to 1
+          const prevFadeRatio = 1 - fadeRatio;
+
+          // Crossfade the last few samples of prev note with first few of current
+          if (sampleIndex - crossfadeLength + i >= 0 && sampleIndex - crossfadeLength + i < buffer.length) {
+            buffer[sampleIndex - crossfadeLength + i] =
+              Math.round((prevNoteBuffer[prevNoteBuffer.length - crossfadeLength + i] * prevFadeRatio) +
+                (noteBuffer[i] * fadeRatio));
+          }
         }
       }
-    }
 
-    // Copy the main part of this note (after any crossfade section)
-    for (let i = (prevNoteBuffer ? crossfadeLength : 0); i < noteBuffer.length; i++) {
-      if (sampleIndex < buffer.length) {
-        buffer[sampleIndex++] = noteBuffer[i];
+      // Copy the main part of this note (after any crossfade section)
+      for (let i = (prevNoteBuffer ? crossfadeLength : 0); i < noteBuffer.length; i++) {
+        if (sampleIndex < buffer.length) {
+          buffer[sampleIndex++] = noteBuffer[i];
+        }
       }
-    }
 
-    // Save this note for possible crossfade with the next
-    prevNoteBuffer = noteBuffer;
+      // Save this note for possible crossfade with the next
+      prevNoteBuffer = noteBuffer;
+    }
+    else if (item.length === 4) {
+      // Piano-style [leftHand, leftDuration, rightHand, rightDuration]
+      const [leftHandFreq, leftHandDuration, rightHandFreq, rightHandDuration] = item;
+
+      // Generate buffers for both hands with appropriate envelopes
+      const leftHandOptions = {
+        decayRate: Math.min(0.7, leftHandDuration * 0.5) // More decay for longer notes
+      };
+      const rightHandOptions = {
+        decayRate: Math.min(0.7, rightHandDuration * 0.5) // More decay for longer notes
+      };
+
+      const leftHandBuffer = createWave(leftHandFreq, leftHandDuration, sampleRate, leftHandOptions);
+      const rightHandBuffer = createWave(rightHandFreq, rightHandDuration, sampleRate, rightHandOptions);
+
+      // Mix the two hands together with crossfade from previous
+      const maxDuration = Math.max(leftHandDuration, rightHandDuration);
+      const maxSamples = Math.ceil(sampleRate * maxDuration);
+      const mixedBuffer = new Int16Array(maxSamples);
+
+      // First mix the two hands together
+      for (let i = 0; i < maxSamples; i++) {
+        let sample = 0;
+
+        // Add left hand if still playing
+        if (i < leftHandBuffer.length) {
+          sample += leftHandBuffer[i] * 0.5; // Scale to prevent clipping
+        }
+
+        // Add right hand if still playing
+        if (i < rightHandBuffer.length) {
+          sample += rightHandBuffer[i] * 0.5; // Scale to prevent clipping
+        }
+
+        mixedBuffer[i] = Math.min(32767, Math.max(-32768, sample)); // Prevent clipping
+      }
+
+      // Apply crossfade if we have a previous note
+      if (prevNoteBuffer && crossfadeLength > 0) {
+        for (let i = 0; i < Math.min(crossfadeLength, mixedBuffer.length); i++) {
+          const fadeRatio = i / crossfadeLength; // 0 to 1
+          const prevFadeRatio = 1 - fadeRatio;
+
+          if (sampleIndex - crossfadeLength + i >= 0 && sampleIndex - crossfadeLength + i < buffer.length) {
+            buffer[sampleIndex - crossfadeLength + i] =
+              Math.round((prevNoteBuffer[prevNoteBuffer.length - crossfadeLength + i] * prevFadeRatio) +
+                (mixedBuffer[i] * fadeRatio));
+          }
+        }
+      }
+
+      // Copy the mixed buffer to the main buffer
+      for (let i = (prevNoteBuffer ? crossfadeLength : 0); i < mixedBuffer.length; i++) {
+        if (sampleIndex < buffer.length) {
+          buffer[sampleIndex++] = mixedBuffer[i];
+        }
+      }
+
+      // Save this note for possible crossfade with the next
+      prevNoteBuffer = mixedBuffer;
+    }
   }
 
   // Convert the filled buffer to a Node.js Buffer
@@ -518,5 +733,162 @@ async function playSequenceAsOneFile(sequence) {
   });
 }
 
+/**
+ * Creates a demonstration of piano-style playing with independent left and right hands
+ */
+function createPianoStyleDemo() {
+  return [
+    // Simple left hand / right hand combination
+    [[NOTE_C3, NOTE_E3, NOTE_G3], 0.4, [NOTE_E4, NOTE_G4], 0.2],  // Left hand chord with right hand melody
+    [null, 0, [NOTE_C5], 0.2],  // Only right hand plays
+    [[NOTE_G2, NOTE_B2, NOTE_D3], 0.4, [NOTE_D4, NOTE_G4], 0.2],  // Next chord with melody
+    [null, 0, [NOTE_B4], 0.2],  // Only right hand plays
+
+    // More complex example with longer right hand notes over changing left hand
+    [[NOTE_C3, NOTE_G3], 0.3, [NOTE_E4, NOTE_G4, NOTE_C5], 0.9],  // Right hand holds longer
+    [[NOTE_G2, NOTE_D3], 0.3, null, 0],  // Left hand changes while right hand continues
+    [[NOTE_E2, NOTE_B2], 0.3, null, 0],  // Left hand changes again
+
+    // Final chord
+    [[NOTE_C3, NOTE_E3, NOTE_G3, NOTE_C4], 0.5, [NOTE_E4, NOTE_G4, NOTE_C5], 0.8]  // Final resolution with right hand lingering
+  ];
+}
+
+/**
+ * Creates an enhanced piano-style Batman theme with independent left and right hand parts
+ * This uses the piano-style format: [leftHand, leftDuration, rightHand, rightDuration]
+ */
+function createPianoStyleBatmanTheme() {
+  // Define the left hand bass accompaniment
+  /**
+   * default duration (152BPM = 1.579s per whole note)
+   */
+  const BPM = 152;
+  const wholeNote = (240 / BPM) * 1.10; // 1.579 sec + 10% for sustain
+  const halfNote = wholeNote / 2;
+  const quarterNote = wholeNote / 4;
+  const eightNote = wholeNote / 8;
+  const emptyNote = [null, 0];
+
+  const firstNananaBass = [
+    [[NOTE_G2,  NOTE_D3,  NOTE_G3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3, NOTE_Gb3], eightNote],
+    [[NOTE_F2,  NOTE_C3,  NOTE_F3], eightNote],
+  ];
+  const firstNananaMelody = [
+    [NOTE_D5, eightNote],
+    [NOTE_Db5, eightNote],
+    [NOTE_C5, eightNote],
+  ];
+
+  const firstNanana = [
+    // Na na na na na na na na
+    [...firstNananaBass[0], ...firstNananaMelody[0]], // Na
+    [...firstNananaBass[0], ...firstNananaMelody[0]], // na
+    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
+    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
+    [...firstNananaBass[2], ...firstNananaMelody[2]], // na
+    [...firstNananaBass[2], ...firstNananaMelody[2]], // na
+    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
+    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
+  ];
+
+  const firstBatManMelody =  [
+    [[NOTE_G4,  NOTE_D5,  NOTE_F5, NOTE_G5], quarterNote],
+    [[NOTE_G4,  NOTE_D5,  NOTE_F5, NOTE_G5], halfNote],
+  ];
+
+  const firstBatman = [
+    // BATMAN!
+    [...firstNananaBass[0], ...firstBatManMelody[0]], // BAT-
+    [...firstNananaBass[0], ...emptyNote],
+    [...firstNananaBass[1], ...firstBatManMelody[1]], // MAN!
+    [...firstNananaBass[1], ...emptyNote],
+    [...firstNananaBass[2], ...emptyNote],
+    [...firstNananaBass[2], ...emptyNote],
+    [...firstNananaBass[1], ...emptyNote],
+    [...firstNananaBass[1], ...emptyNote],
+  ];
+
+  const firstNananaTransition = [
+    [...firstNananaBass[0], ...firstNananaMelody[0]], // Na
+    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
+  ];
+
+  const leftHandBass2 = [NOTE_C4, NOTE_G4];
+  const leftHandAltBass2 = [NOTE_C4, NOTE_Gb4];
+  const leftHandDownBass2 = [NOTE_C4, NOTE_F4];
+  const rightHandBatman2 = [NOTE_C5, NOTE_G5, NOTE_Bb5, NOTE_C6];
+  const secondBatmanNanana = [
+    // BATMAN!
+    [leftHandBass2, 0.22, rightHandBatman2, 0.22],    // BAT-
+    [leftHandBass2, 0.22, null, 0],
+    [leftHandAltBass2, 0.22, null, 0],
+    [leftHandAltBass2, 0.22, rightHandBatman2, 0.42], // MAN!
+    [leftHandDownBass2, 0.22, null, 0],
+    [leftHandDownBass2, 0.22, null, 0],
+    [leftHandAltBass2, 0.22, null, 0],
+    [leftHandAltBass2, 0.22, null, 0],
+    // Na na na na na na na na
+    [leftHandBass2, 0.22, [NOTE_D5], 0.22],                 // Na
+    [leftHandBass2, 0.22, [NOTE_D5], 0.22],                 // na
+    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
+    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
+    [leftHandDownBass2, 0.22, [NOTE_C5], 0.22],             // na
+    [leftHandDownBass2, 0.22, [NOTE_C5], 0.22],             // na
+    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
+    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
+    [leftHandBass2, 0.22, [NOTE_D5], 0.22],
+  ];
+
+  // Define the theme with piano-style independent hands
+  return [
+    ...firstNanana,
+    ...firstNanana,
+    ...firstNanana,
+    ...firstNanana,
+    ...firstBatman,
+    ...firstNanana,
+    ...firstBatman,
+    ...firstNanana,
+    ...firstNananaTransition,
+    ...secondBatmanNanana,
+    ...firstBatman,
+  ];
+}
+
 // Run the theme
-playBatmanTheme().catch(console.error);
+const args = process.argv.slice(2);
+
+if (args.includes('--help')) {
+  console.log(`
+  ${YELLOW}${BOLD}nananana Theme Player${RESET}
+
+  run ${BOLD}npx nananana${RESET} to call alfred
+  
+  Options:
+    --basic   Play the basic piano-style Batman theme with full piano sound
+    --piano      Play a demo of the piano-style playing capabilities
+    --help       Show this help message
+  `);
+  process.exit(0);
+} else if (args.includes('--piano')) {
+  // Run a demo of the piano-style playing
+  (async () => {
+    console.log(`${YELLOW}${BOLD}Demonstrating piano-style playing with independent hands...${RESET}`);
+
+    const pianoDemo = createPianoStyleDemo();
+
+    // On macOS, use the optimized method
+    if (process.platform === 'darwin') {
+      await playSequenceAsOneFile(pianoDemo);
+    } else {
+      await playSequence(pianoDemo);
+    }
+
+    console.log(`${YELLOW}${BOLD}Piano demo complete!${RESET}`);
+  })();
+} else {
+  // Run the Batman theme by default
+  playBatmanTheme().catch(console.error);
+}

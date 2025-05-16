@@ -1,10 +1,10 @@
 {
-  "name": "nananana",
+  "name": "nanananana",
   "version": "1.0.0",
   "description": "Play the Batman theme song from your terminal",
   "main": "index.js",
   "bin": {
-    "nananana": "index.js"
+    "nanananana": "index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

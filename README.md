@@ -1,45 +1,52 @@
-# nananana
+# nanananana
 
 Play the Batman theme song from your terminal without any external dependencies!
 
 ## Installation
 
 ```bash
-npx nananana
+npx nanananana
 ```
 
 No installation required! Just run the command above to play the Batman theme.
 
-If you want to install it globally:
-
-```bash
-npm install -g nananana
-```
-
-Then run:
-
-```bash
-nananana
-```
-
 ## Features
 
-- Plays the classic "Na na na na na na na na BATMAN!" theme with melodic variations
-- Uses a full range of notes including sharps/flats for a more dynamic melody
-- Supports playing chords using proper harmonic synthesis (multiple notes as one sound)
+- Plays the classic "Na na na na na na na na BATMAN!" theme
+- Uses a full range of notes including sharps/flats
+- Piano-like sound with proper Attack-Decay-Sustain-Release envelope
+- Implements gradual piano-like fading for notes that mimics real piano acoustics
+- Supports sequenced music patterns
+- Features alternating patterns that simulate multi-channel playback
 - Uses music theory principles to create clean, non-vibrating chord sounds
 - No external dependencies required to play sounds
 - Works on macOS, Windows, and Linux
 - Displays a cool Batman logo
 - Seamless note transitions with no audible gaps between notes
 
+## Command Line Options
+
+- `npx nanananana` - Play the classic Batman theme
+- `npx nanananana --basic` - Play the basic piano-style version without extra features
+- `npx nanananana --piano` - Demonstrate piano-style playing with independent hands
+- `npx nanananana --help` - Show command line options
+
 ## How It Works
 
 This package uses Node.js built-in capabilities to play sound:
 - On Windows, it uses PowerShell's `[console]::beep()`
 - On macOS, it generates WAV files on the fly and plays them with `afplay`
-- On Linux, it attempts to use the terminal bell or system beep
+- On Linux, it attempts to use the terminal bell or `aplay` when available
+
+For chords and multi-note playback, it implements:
+- Proper harmonic synthesis that mimics the way piano strings resonate together
+- Piano-like envelope shaping with realistic attack, decay, sustain, and release phases
+- Independent left and right hand parts with different note durations
+- Gradual fading of notes that simulates real piano acoustics
+- Detailed overtone generation based on musical intervals
+
+For multi-part sequences, it uses carefully timed patterns with silences and alternating notes to create the impression of multiple tracks playing simultaneously, while maintaining pristine audio quality.
 
 ## License
 
-ISC
+MIT
