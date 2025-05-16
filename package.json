@@ -1,0 +1,19 @@
+{
+  "name": "nananana",
+  "version": "1.0.0",
+  "description": "Play the Batman theme song from your terminal",
+  "main": "index.js",
+  "bin": {
+    "nananana": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["batman", "theme", "sound", "cli", "fun"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
