@@ -1,4 +1,4 @@
-#!/usr/b// Batman theme notation (frequency, duration in seconds)
+#!/usr/bin/env node
 /**
  * nanananana - Play the Batman theme song from your terminal
  * This program uses native Node.js capabilities to play the sound
