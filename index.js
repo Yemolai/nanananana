@@ -14,62 +14,98 @@ const BLACK_BG = '\x1b[40m';
 // Define the notes frequencies across multiple octaves
 // Octave 2
 const NOTE_C2 = 65.41;
+const NOTE_Cs2 = 69.30; // C#2
 const NOTE_Db2 = 69.30;  // Same as C#2
 const NOTE_D2 = 73.42;
+const NOTE_Ds2 = 77.78; // D#2
 const NOTE_Eb2 = 77.78;  // Same as D#2
 const NOTE_E2 = 82.41;
 const NOTE_F2 = 87.31;
+const NOTE_Fs2 = 92.50; // F#2
 const NOTE_Gb2 = 92.50;  // Same as F#2
 const NOTE_G2 = 98.00;
+const NOTE_Gs2 = 103.83; // G#2
 const NOTE_Ab2 = 103.83; // Same as G#2
 const NOTE_A2 = 110.00;
+const NOTE_As2 = 116.54; // A#2
 const NOTE_Bb2 = 116.54; // Same as A#2
 const NOTE_B2 = 123.47;
 
 // Octave 3
 const NOTE_C3 = 130.81;
+const NOTE_Cs3 = 138.59; // C#3
 const NOTE_Db3 = 138.59; // Same as C#3
 const NOTE_D3 = 146.83;
+const NOTE_Ds3 = 155.56; // D#3
 const NOTE_Eb3 = 155.56; // Same as D#3
 const NOTE_E3 = 164.81;
 const NOTE_F3 = 174.61;
+const NOTE_Fs3 = 185.00; // F#3
 const NOTE_Gb3 = 185.00; // Same as F#3
 const NOTE_G3 = 196.00;
+const NOTE_Gs3 = 207.65; // G#3
 const NOTE_Ab3 = 207.65; // Same as G#3
 const NOTE_A3 = 220.00;
+const NOTE_As3 = 233.08; // A#3
 const NOTE_Bb3 = 233.08; // Same as A#3
 const NOTE_B3 = 246.94;
 
 // Octave 4 (middle C is C4)
 const NOTE_C4 = 261.63;
+const NOTE_Cs4 = 277.18; // C#4
 const NOTE_Db4 = 277.18; // Same as C#4
 const NOTE_D4 = 293.66;
+const NOTE_Ds4 = 311.13; // D#4
 const NOTE_Eb4 = 311.13; // Same as D#4
 const NOTE_E4 = 329.63;
 const NOTE_F4 = 349.23;
+const NOTE_Fs4 = 369.99; // F#4
 const NOTE_Gb4 = 369.99; // Same as F#4
 const NOTE_G4 = 392.00;
+const NOTE_Gs4 = 415.30; // G#4
 const NOTE_Ab4 = 415.30; // Same as G#4
 const NOTE_A4 = 440.00;  // A440 concert pitch standard
+const NOTE_As4 = 466.16; // A#4
 const NOTE_Bb4 = 466.16; // Same as A#4
 const NOTE_B4 = 493.88;
 
 // Octave 5
 const NOTE_C5 = 523.25;
+const NOTE_Cs5 = 554.37; // C#5
 const NOTE_Db5 = 554.37; // Same as C#5
 const NOTE_D5 = 587.33;
+const NOTE_Ds5 = 622.25; // D#5
 const NOTE_Eb5 = 622.25; // Same as D#5
 const NOTE_E5 = 659.26;
 const NOTE_F5 = 698.46;
+const NOTE_Fs5 = 739.99; // F#5
 const NOTE_Gb5 = 739.99; // Same as F#5
 const NOTE_G5 = 783.99;
+const NOTE_Gs5 = 830.61; // G#5
 const NOTE_Ab5 = 830.61; // Same as G#5
 const NOTE_A5 = 880.00;
+const NOTE_As5 = 932.33; // A#5
 const NOTE_Bb5 = 932.33; // Same as A#5
 const NOTE_B5 = 987.77;
 
 // Octave 6
 const NOTE_C6 = 1046.50;
+const NOTE_Cs6 = 1108.73; // C#6
+const NOTE_Db6 = 1108.73; // Same as C#6
+const NOTE_D6 = 1174.66;
+const NOTE_Ds6 = 1244.51; // D#6
+const NOTE_Eb6 = 1244.51; // Same as D#6
+const NOTE_E6 = 1318.51;
+const NOTE_F6 = 1396.91;
+const NOTE_Fs6 = 1479.98; // F#6
+const NOTE_Gb6 = 1479.98; // Same as F#6
+const NOTE_G6 = 1567.98;
+const NOTE_Gs6 = 1661.22; // G#6
+const NOTE_Ab6 = 1661.22; // Same as G#6
+const NOTE_A6 = 1760.00;
+const NOTE_As6 = 1864.66; // A#6
+const NOTE_Bb6 = 1864.66; // Same as A#6
+const NOTE_B6 = 1975.53;
 
 const basicSongParts = {
   lowNanaNanaNanaNana: [
@@ -768,92 +804,177 @@ function createPianoStyleBatmanTheme() {
   const halfNote = wholeNote / 2;
   const quarterNote = wholeNote / 4;
   const eightNote = wholeNote / 8;
-  const emptyNote = [null, 0];
-
-  const firstNananaBass = [
-    [[NOTE_G2,  NOTE_D3,  NOTE_G3], eightNote],
-    [[NOTE_Gb2, NOTE_Db3, NOTE_Gb3], eightNote],
-    [[NOTE_F2,  NOTE_C3,  NOTE_F3], eightNote],
-  ];
-  const firstNananaMelody = [
-    [NOTE_D5, eightNote],
-    [NOTE_Db5, eightNote],
-    [NOTE_C5, eightNote],
-  ];
-
-  const firstNanana = [
-    // Na na na na na na na na
-    [...firstNananaBass[0], ...firstNananaMelody[0]], // Na
-    [...firstNananaBass[0], ...firstNananaMelody[0]], // na
-    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
-    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
-    [...firstNananaBass[2], ...firstNananaMelody[2]], // na
-    [...firstNananaBass[2], ...firstNananaMelody[2]], // na
-    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
-    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
-  ];
-
-  const firstBatManMelody =  [
-    [[NOTE_G4,  NOTE_D5,  NOTE_F5, NOTE_G5], quarterNote],
-    [[NOTE_G4,  NOTE_D5,  NOTE_F5, NOTE_G5], halfNote],
-  ];
-
-  const firstBatman = [
-    // BATMAN!
-    [...firstNananaBass[0], ...firstBatManMelody[0]], // BAT-
-    [...firstNananaBass[0], ...emptyNote],
-    [...firstNananaBass[1], ...firstBatManMelody[1]], // MAN!
-    [...firstNananaBass[1], ...emptyNote],
-    [...firstNananaBass[2], ...emptyNote],
-    [...firstNananaBass[2], ...emptyNote],
-    [...firstNananaBass[1], ...emptyNote],
-    [...firstNananaBass[1], ...emptyNote],
-  ];
-
-  const firstNananaTransition = [
-    [...firstNananaBass[0], ...firstNananaMelody[0]], // Na
-    [...firstNananaBass[1], ...firstNananaMelody[1]], // na
-  ];
-
-  const leftHandBass2 = [NOTE_C4, NOTE_G4];
-  const leftHandAltBass2 = [NOTE_C4, NOTE_Gb4];
-  const leftHandDownBass2 = [NOTE_C4, NOTE_F4];
-  const rightHandBatman2 = [NOTE_C5, NOTE_G5, NOTE_Bb5, NOTE_C6];
-  const secondBatmanNanana = [
-    // BATMAN!
-    [leftHandBass2, 0.22, rightHandBatman2, 0.22],    // BAT-
-    [leftHandBass2, 0.22, null, 0],
-    [leftHandAltBass2, 0.22, null, 0],
-    [leftHandAltBass2, 0.22, rightHandBatman2, 0.42], // MAN!
-    [leftHandDownBass2, 0.22, null, 0],
-    [leftHandDownBass2, 0.22, null, 0],
-    [leftHandAltBass2, 0.22, null, 0],
-    [leftHandAltBass2, 0.22, null, 0],
-    // Na na na na na na na na
-    [leftHandBass2, 0.22, [NOTE_D5], 0.22],                 // Na
-    [leftHandBass2, 0.22, [NOTE_D5], 0.22],                 // na
-    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
-    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
-    [leftHandDownBass2, 0.22, [NOTE_C5], 0.22],             // na
-    [leftHandDownBass2, 0.22, [NOTE_C5], 0.22],             // na
-    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
-    [leftHandAltBass2, 0.22, [NOTE_Db5], 0.22],             // na
-    [leftHandBass2, 0.22, [NOTE_D5], 0.22],
-  ];
 
   // Define the theme with piano-style independent hands
   return [
-    ...firstNanana,
-    ...firstNanana,
-    ...firstNanana,
-    ...firstNanana,
-    ...firstBatman,
-    ...firstNanana,
-    ...firstBatman,
-    ...firstNanana,
-    ...firstNananaTransition,
-    ...secondBatmanNanana,
-    ...firstBatman,
+    // Na na na na na na na na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // Na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na // 2s
+    // Na na na na na na na na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // Na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na // 3s
+    // Na na na na na na na na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // Na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na // 5s
+    // Na na na na na na na na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // Na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na // 7s
+    // BATMAN!
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_G3,  NOTE_D4,  NOTE_F4, NOTE_G4], quarterNote], // BAT-
+    [[NOTE_G2,  NOTE_D3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_G3,  NOTE_D4,  NOTE_F4, NOTE_G4], 3*quarterNote], // MAN!
+    [[NOTE_Gb2, NOTE_Db3], eightNote],
+    [[NOTE_F2,  NOTE_C3], eightNote],
+    [[NOTE_F2,  NOTE_C3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote], // 8s
+    // Na na na na na na na na
+    [[NOTE_G2,  NOTE_D3], eightNote, NOTE_D4, eightNote],   // Na
+    [[NOTE_G2,  NOTE_D3], eightNote, NOTE_D4, eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, NOTE_Db4, eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote],   // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na // 10s
+    // BATMAN!
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_G3,  NOTE_D4,  NOTE_F4, NOTE_G4], quarterNote], // BAT-
+    [[NOTE_G2,  NOTE_D3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_G3,  NOTE_D4,  NOTE_F4, NOTE_G4], 3*quarterNote], // MAN!
+    [[NOTE_Gb2, NOTE_Db3], eightNote],
+    [[NOTE_F2,  NOTE_C3], eightNote],
+    [[NOTE_F2,  NOTE_C3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote], // 12s
+    // Na na na na na na na na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote], // Na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na // 13s
+    // BATMAN!
+    [[NOTE_C3, NOTE_G3], eightNote, [NOTE_C4, NOTE_G4, NOTE_Bb4, NOTE_C5], quarterNote],    // BAT-
+    [[NOTE_C3, NOTE_G3], eightNote],
+    [[NOTE_C3, NOTE_Gb3], eightNote],
+    [[NOTE_C3, NOTE_Gb3], eightNote, [NOTE_C4, NOTE_G4, NOTE_Bb4, NOTE_C5], 3*quarterNote], // MAN!
+    [[NOTE_C3, NOTE_F3], eightNote],
+    [[NOTE_C3, NOTE_F3], eightNote],
+    [[NOTE_C3, NOTE_Gb3], eightNote],
+    [[NOTE_C3, NOTE_Gb3], eightNote], // 15s
+    // Na na na na na na na na
+    [[NOTE_C3, NOTE_G3], eightNote],   // Na
+    [[NOTE_C3, NOTE_G3], eightNote],   // na
+    [[NOTE_C3, NOTE_Gb3], eightNote], // na
+    [[NOTE_C3, NOTE_Gb3], eightNote], // na
+    [[NOTE_C3, NOTE_F3], eightNote],   // na
+    [[NOTE_C3, NOTE_F3], eightNote],   // na
+    [[NOTE_C3, NOTE_Gb3], eightNote], // na
+    [[NOTE_C3, NOTE_G3], eightNote],   // na // 16s
+    // BATMAN!
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_G3,  NOTE_D4,  NOTE_F4, NOTE_G4], quarterNote], // BAT-
+    [[NOTE_G2,  NOTE_D3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_G3,  NOTE_D4,  NOTE_F4, NOTE_G4], 3*quarterNote], // MAN!
+    [[NOTE_Gb2, NOTE_Db3], eightNote],
+    [[NOTE_F2,  NOTE_C3], eightNote],
+    [[NOTE_F2,  NOTE_C3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote],
+    [[NOTE_Gb2, NOTE_Db3], eightNote], // 18s
+    // Na na na na na na na na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote], // Na
+    [[NOTE_G2,  NOTE_D3], eightNote, [NOTE_D4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na
+    [[NOTE_F2,  NOTE_C3], eightNote, [NOTE_C4], eightNote], // na
+    [[NOTE_Gb2, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // na // 19s
+    [[NOTE_D3, NOTE_A3], eightNote,  [NOTE_D4, NOTE_A4, NOTE_C5, NOTE_D5], quarterNote], // BAT-
+    [[NOTE_D3, NOTE_A3], eightNote],
+    [[NOTE_D3, NOTE_Ab3], eightNote, [NOTE_D4, NOTE_A4, NOTE_C5, NOTE_D5], quarterNote], // MAN!
+    [[NOTE_D3, NOTE_Ab3], eightNote],
+    [[NOTE_D3, NOTE_G3], eightNote],
+    [[NOTE_D3, NOTE_G3], eightNote,  [NOTE_D4, NOTE_Ab4, NOTE_A4, NOTE_D5], eightNote],
+    [[NOTE_D3, NOTE_Ab3], eightNote, [NOTE_D4, NOTE_Ab4, NOTE_A4, NOTE_D5], eightNote],
+    [[NOTE_D3, NOTE_A3], eightNote, [NOTE_D4, NOTE_Ab4, NOTE_A4, NOTE_D5], eightNote],
+    [[NOTE_C3, NOTE_G3], eightNote, [NOTE_C4, NOTE_G4, NOTE_Bb4, NOTE_C5], quarterNote],
+    [[NOTE_C3, NOTE_G3], eightNote],
+    [[NOTE_C3, NOTE_Gb3], eightNote, [NOTE_C4, NOTE_G4, NOTE_Bb4, NOTE_C5], quarterNote],
+    [[NOTE_C3, NOTE_Gb3], eightNote],
+    [[NOTE_C3, NOTE_F3], eightNote],
+    [[NOTE_C3, NOTE_F3], eightNote, [NOTE_C4, NOTE_Gb4, NOTE_G4, NOTE_C5], eightNote],
+    [[NOTE_C3, NOTE_Gb3], eightNote, [NOTE_C4, NOTE_Gb4, NOTE_G4, NOTE_C5], eightNote],
+    [[NOTE_C3, NOTE_G3], eightNote, [NOTE_C4, NOTE_Gb4, NOTE_G4, NOTE_C5], eightNote], // 21s
+    [[NOTE_G2, NOTE_D3], eightNote,  [NOTE_G3, NOTE_D4, NOTE_F4, NOTE_G4], quarterNote], // BAT-
+    [[NOTE_D3, NOTE_D3], eightNote],
+    [[NOTE_G2, NOTE_Db3], eightNote, [NOTE_G3, NOTE_D4, NOTE_F4, NOTE_G4], 3*quarterNote], // MAN!
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_D3], eightNote, [NOTE_D4], eightNote],
+    [[NOTE_D3, NOTE_D3], eightNote, [NOTE_D4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote, [NOTE_C4], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote, [NOTE_C4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // 24s
+    [[NOTE_G2, NOTE_D3], eightNote,  [NOTE_G3, NOTE_D4, NOTE_F4, NOTE_G4], quarterNote], // BAT-
+    [[NOTE_D3, NOTE_D3], eightNote],
+    [[NOTE_G2, NOTE_Db3], eightNote, [NOTE_G3, NOTE_D4, NOTE_F4, NOTE_G4], 3*quarterNote], // MAN!
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_D3], eightNote, [NOTE_D4], eightNote],
+    [[NOTE_D3, NOTE_D3], eightNote, [NOTE_D4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote, [NOTE_C4], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote, [NOTE_C4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // 27s
+    [[NOTE_G2, NOTE_D3], eightNote,  [NOTE_G3, NOTE_D4, NOTE_F4, NOTE_G4], quarterNote], // BAT-
+    [[NOTE_D3, NOTE_D3], eightNote],
+    [[NOTE_G2, NOTE_Db3], eightNote, [NOTE_G3, NOTE_D4, NOTE_F4, NOTE_G4], 3*quarterNote], // MAN!
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote],
+    [[NOTE_D3, NOTE_D3], eightNote, [NOTE_D4], eightNote],
+    [[NOTE_D3, NOTE_D3], eightNote, [NOTE_D4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote, [NOTE_C4], eightNote],
+    [[NOTE_D3, NOTE_C3], eightNote, [NOTE_C4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote],
+    [[NOTE_D3, NOTE_Db3], eightNote, [NOTE_Db4], eightNote], // 31s
   ];
 }
 
