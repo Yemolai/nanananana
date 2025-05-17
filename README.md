@@ -50,3 +50,5 @@ For multi-part sequences, it uses carefully timed patterns with silences and alt
 ## License
 
 MIT
+
+The song rights are obviously reserved to the original song owners, this is just a fun project to try to generate audio from scratch using node.js and I don't claim this song is mine at all, I'm using notes to represent it as a form of making my own version with a synthetizer.
